@@ -1,0 +1,32 @@
+<!-- 
+  Вывод таблицы параметров 
+  .parameters - схема объекта
+  .openapi - глобальный объект со спецификацией api
+  .in - фильтр по расположению параметра
+-->
+{{ if .parameters }}
+  {{ $parameters := .parameters }}
+  {{ $openapi := .openapi }}
+  {{ $in := .in }}
+  <div class="body-table">
+    <div class="header">Наименование</div>
+    <div class="header">Тип</div>
+    <div class="header">Формат</div>
+    <div class="header">Описание</div>
+    {{ range $parameter := $parameters }}
+      {{ $ref := index $parameter "$ref" }}
+      {{ if $ref }}
+        {{ $id := replace $ref "#/components/parameters/" "" }}
+        {{ $parameter = index $openapi.components.parameters $id }}
+      {{ end }}
+      {{ if eq $parameter.in $in }}
+        {{ partial "schema-element" (dict "schema" $parameter.schema "openapi" $openapi "parent" $parameter.name "description" $parameter.description) }}
+      {{ end }}
+    {{ end }}
+  </div>
+{{ end }}
+
+
+
+
+

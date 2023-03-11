@@ -1,20 +1,17 @@
 <!-- 
   Вывод таблицы свойств схемы объекта 
   .schema - схема объекта
-  .ref - ссылка на схему
   .openapi - глобальный объект со спецификацией api
 -->
-{{ if .ref }}
-  {{ $ref := .ref }}
+{{ if .schema }}
+  {{ $schema := .schema }}
   {{ $openapi := .openapi }}
-  {{ $id := replace .ref "#/components/schemas/" "" }}
-  {{ $schema := index .openapi.components.schemas $id }}
   <div class="body-table">
     <div class="header">Наименование</div>
     <div class="header">Тип</div>
     <div class="header">Формат</div>
     <div class="header">Описание</div>
-    {{ partial "property-schema" (dict "ref" $ref "openapi" $openapi "parent" "") }}
+    {{ partial "schema-element" (dict "schema" $schema "openapi" $openapi "parent" "") }}
   </div>
 {{ end }}
 

@@ -68,72 +68,46 @@ where fileName is the file's name with `.json` removed from the end
             {{ $isheader := 0}}
             {{ $ispath := 0 }}
             {{ $isquery := 0}}
+            {{ $iscookie := 0}}
             {{ range $parameter := $pathDetails.parameters }}
-              {{ if eq $parameter.in "header" }}
-               {{ $isheader = 1 }}
+              {{ $ref := index $parameter "$ref" }}
+              {{ if $ref }}
+                {{ $id := replace $ref "#/components/parameters/" "" }}
+                {{ $parameter = index $openapi.components.parameters $id }}
               {{ end }}
-              {{ if eq $parameter.in "path" }}
-               {{ $ispath = 1 }}
-              {{ end }}
-              {{ if eq $parameter.in "query" }}
-               {{ $isquery = 1 }}
-              {{ end }}
+              {{ if eq $parameter.in "header" }}{{ $isheader = 1 }}{{ end }}
+              {{ if eq $parameter.in "path" }}{{ $ispath = 1 }}{{ end }}
+              {{ if eq $parameter.in "query" }}{{ $isquery = 1 }}{{ end }}
+              {{ if eq $parameter.in "cookie" }}{{ $iscookie = 1 }}{{ end }}
             {{ end }}
 
             <!-- Параметры заголовка -->
             {{ if eq $isheader 1 }}
-            <h2>Параметры заголовка:</h2>
-            <div class="parameters-table">
-              <div class="header">Наименование</div>
-              <div class="header">Тип</div>
-              <div class="header">Описание</div>
-              {{ range $parameter := $pathDetails.parameters }}
-              {{ if eq $parameter.in "header" }}
-              <div class="parameter-name">{{ $parameter.name }}</div>
-              <div class="parameter-type">{{ $parameter.schema.type }}</div>
-              <div class="parameter-description">{{ $parameter.description }}</div>
-              {{ end }}
-              {{ end }}
-            </div>
+              <h2>Параметры заголовка:</h2>
+              {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "header") }}
             {{ end }}
             <!-- Параметры пути -->
             {{ if eq $ispath 1 }}
-            <h2>Параметры пути:</h2>
-            <div class="parameters-table">
-              <div class="header">Наименование</div>
-              <div class="header">Тип</div>
-              <div class="header">Описание</div>
-              {{ range $parameter := $pathDetails.parameters }}
-              {{ if eq $parameter.in "path" }}
-              <div class="parameter-name">{{ $parameter.name }}</div>
-              <div class="parameter-type">{{ $parameter.schema.type }}</div>
-              <div class="parameter-description">{{ $parameter.description }}</div>
-              {{ end }}
-              {{ end }}
-            </div>
+              <h2>Параметры пути:</h2>
+              {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "path") }}
             {{ end }}
             <!-- Параметры строки запроса -->
             {{ if eq $isquery 1 }}
-            <h2>Параметры строки запроса:</h2>
-            <div class="parameters-table">
-              <div class="header">Наименование</div>
-              <div class="header">Тип</div>
-              <div class="header">Описание</div>
-              {{ range $parameter := $pathDetails.parameters }}
-              {{ if eq $parameter.in "query" }}
-              <div class="parameter-name">{{ $parameter.name }}</div>
-              <div class="parameter-type">{{ $parameter.schema.type }}</div>
-              <div class="parameter-description">{{ $parameter.description }}</div>
-              {{ end }}
-              {{ end }}
-            </div>
+              <h2>Параметры строки запроса:</h2>
+              {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "query") }}
             {{ end }}
+            <!-- Параметры в куки -->
+            {{ if eq $iscookie 1 }}
+              <h2>Параметры строки запроса:</h2>
+              {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "cookie") }}
+            {{ end }}
+
             <!-- Параметры тела запроса -->
             {{ if isset $pathDetails "requestBody" }}
               <h2>Параметры тела запроса:</h2>
               <!-- Вывод схемы тела запроса -->
               {{ $schema := (index $pathDetails.requestBody.content "application/json").schema }}
-              {{ partial "properties-table" (dict "ref" (index $schema "$ref") "openapi" $openapi) }}
+              {{ partial "schema-table" (dict "schema" $schema "openapi" $openapi) }}
             {{ end }}
             <!-- Ссылка на внешнее описание -->
             <div><a href="{{ $pathDetails.externalDocs.url }}">{{ $pathDetails.externalDocs.description}}</a></div>
@@ -146,10 +120,10 @@ where fileName is the file's name with `.json` removed from the end
               {{ if isset $responseDetails "content" }}
 
                 <!-- Вывод схемы ответов -->
-                <h2>Свойства схемы ответа:</h2>
+                <h2>Свойства объекта ответа:</h2>
                 {{ $schema := (index $responseDetails.content "application/json").schema }}
-                {{ partial "properties-table" (dict "schema" $schema "ref" (index $schema "$ref") "openapi" $openapi) }}
-
+                <div>{{ $schema }}</div>
+                {{ partial "schema-table" (dict "schema" $schema "openapi" $openapi) }}
               {{ range $exampleName, $example := (index $responseDetails.content "application/json").examples }}
                 <!-- Вывод множественных примеров -->
                 {{ if isset $example "$ref" }}

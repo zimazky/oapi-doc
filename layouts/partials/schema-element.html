@@ -1,0 +1,72 @@
+<!-- 
+  Вывод информации по схеме объекта 
+  .schema - схема объекта
+  .parent - строка с цепочкой родительских объектов
+  .openapi - глобальный объект со спецификацией api
+  .description - описание, если задано на верхнем уровне
+
+
+  TODO: Необходимо добавить обработку allOf, oneOf, anyOf и enum
+-->
+{{ if .schema }}
+  {{ $schema := .schema }}
+  {{ $openapi := .openapi }}
+  {{ $parent := .parent }}
+  {{ $description := .description }}
+  {{ $ref := (index $schema "$ref") }}
+  {{ if $ref }}
+    <!-- Переходим по ссылке и выводим информацию по компоненту -->
+    {{ $id := replace $ref "#/components/schemas/" "" }}
+    <div class="span3">{{ $id }}</div>
+    {{ $schema = index $openapi.components.schemas $id }}
+    <div>{{ $schema.description }}</div>
+    {{ partial "schema-element" (dict "schema" $schema "openapi" $openapi "parent" $parent) }}
+  {{ else if eq $schema.type "array" }}
+    <!-- Выводим по схеме массива -->
+    <!--
+    <div>0 {{ $parent }}[]</div>
+    <div>{{ $schema.type }} {{ if $schema.nullable }} (nullable){{ end }}</div>
+    <div>{{ $schema.format }}</div>
+    <div>{{ $schema.description }}</div>
+    -->
+    {{ $schema = $schema.items }}
+    <div class="items-delimiter">array of items {</div>
+    {{ partial "schema-element" (dict "schema" $schema "openapi" $openapi "parent" (printf "%s" $parent)) }}
+    <div class="items-delimiter">}</div>
+  {{ else if eq $schema.type "object" }}
+    <!-- Выводим по схеме объекта с перебором всех свойств -->
+    <!--
+    <div>1</div>
+    <div>{{ $schema.type }} {{ if $schema.nullable }} (nullable){{ end }}</div>
+    <div>{{ $schema.format }}</div>
+    <div>{{ $schema.description }}</div>
+    -->
+    {{ range $name, $property := $schema.properties }}
+      {{ $schema = $property }}
+      <div>{{ $parent }}.{{ $name }}</div>
+      <div>{{ $schema.type }} {{ if $schema.nullable }} (nullable){{ end }}</div>
+      <div>{{ $schema.format }}</div>
+      <div>{{ $schema.description }}</div>
+      {{ if eq $schema.type "array" }}
+        <div class="items-delimiter">array of items {</div>
+        {{ $schema = $schema.items }}
+        {{ partial "schema-element" (dict "schema" $schema "openapi" $openapi "parent" (printf "%s.%s[]" $parent $name)) }}
+        <div class="items-delimiter">}</div>
+      {{ else if eq $schema.type "object"}}
+        {{ partial "schema-element" (dict "schema" $schema "openapi" $openapi "parent" (printf "%s.%s" $parent $name)) }}
+      {{ end}}
+    {{ end }}
+  {{ else }}
+    <div>{{ $parent }}</div>
+    <div>{{ $schema.type }} {{ if $schema.nullable }} (nullable){{ end }}</div>
+    <div>{{ $schema.format }}</div>
+    {{ if $schema.description }}{{ $description = $schema.description }}{{ end }}
+    <div>{{ $description }}</div>
+  {{ end }}
+{{ end }}
+
+
+
+
+
+

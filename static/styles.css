@@ -72,3 +72,8 @@ h2 {
   color: slateblue;
   grid-column: 1/4;
 }
+
+.items-delimiter {
+  color: slateblue;
+  grid-column: 1/5;
+}
