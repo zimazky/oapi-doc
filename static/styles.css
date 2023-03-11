@@ -1,0 +1,74 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+	font-family: 'Roboto', sans-serif;
+  font-size: 1em;
+}
+
+h2 {
+  font-weight: bold;
+  margin-top: 2em;
+}
+
+.caption-table {
+  font-weight: bold;
+  margin-top: 2em;
+}
+
+.parameters-table {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  margin: 1em;
+}
+
+.parameters-table div{
+  padding-right: 1em;
+  margin-top: 0.5em;
+}
+
+.parameters-table .header {
+  font-weight: bold;
+  border-bottom: 1px solid black;
+}
+
+.path-container {
+  padding: 1em;
+  border-top: 1px solid black;
+}
+
+.path {
+  font-size: 2em;
+}
+
+.path .method {
+  text-transform: uppercase;
+}
+
+.path-summary {
+  font-size: 1.5em;
+  margin-top: 1em;
+}
+
+.body-table {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  margin: 1em;
+}
+
+.body-table div{
+  padding-right: 1em;
+  margin-top: 0.5em;
+}
+
+.body-table .header {
+  font-weight: bold;
+  border-bottom: 1px solid black;
+}
+
+.span3 {
+  color: slateblue;
+  grid-column: 1/4;
+}

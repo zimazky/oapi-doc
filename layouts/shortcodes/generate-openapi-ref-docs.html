@@ -1,0 +1,183 @@
+<!-- 
+hugo OpenAPI reference documentation generator
+
+Params:
+  url: the public URL of the OpenAPI .json specification
+
+Generates reference documentation based on the provided OpenAPI specification. Use with: {{/*
+
+  {{< generate-openapi-ref-docs url="your-.json-file-url" >}}
+
+  */}}
+
+  Example: {{/*
+
+  {{< generate-openapi-ref-docs url="https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json" >}}
+
+  */}}
+
+If your OpenAPI spec is not hosted at an accessible url endpoint, you can
+store a copy of your OpenAPI specification in the root-level site /data folder.
+Then delete the first and last lines of the code block below, and replace the
+$openapi variable declaration at the beginning with: {{/*
+
+{{ $openapi := .Site.Data.fileName }}
+
+*/}}
+
+where fileName is the file's name with `.json` removed from the end
+ -->
+ {{ with $.Params.url }}
+  {{ $openapi := getJSON $.Params.url }}
+  <div class="openapi-spec-content">
+    <h2>{{ $openapi.info.title }} version {{ $openapi.info.version }}</h2>
+    <div class="api-description">Описание {{ $openapi.info.description }}</div>
+    <!-- Сбор всех тегов -->
+    {{ $tags := slice }}
+    {{ range $path, $pathMethods := $openapi.paths }}
+      {{ range $pathMethod, $pathDetails := $pathMethods }}
+        {{ $tags = union $tags $pathDetails.tags }}
+      {{ end }}
+    {{ end }}
+
+    <!-- Содержание -->
+    {{ range $tag := $tags }}
+      <div><a href="#{{ $tag }}">{{ $tag }}</a></div>
+      {{ range $path, $pathMethods := $openapi.paths }}
+        {{ range $pathMethod, $pathDetails := $pathMethods }}
+          {{ if in $pathDetails.tags $tag }}
+            {{ if $pathDetails.operationId }}
+            <div><a href="#{{$pathDetails.operationId}}">({{$pathMethod}}) {{ $pathDetails.operationId }}</a></div>
+            {{ end }}
+          {{ end }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+
+    {{ range $tag := $tags }}
+      <h1 id="{{ $tag }}">{{ $tag }}</h1>
+      <!-- Разбивка методов по тегам -->
+      {{ range $path, $pathMethods := $openapi.paths }}
+        {{ range $pathMethod, $pathDetails := $pathMethods }}
+          {{ if in $pathDetails.tags $tag }}
+          <div class="path-container" id="{{$pathDetails.operationId}}">
+            <div>{{ $pathDetails.operationId }}</div>
+            <div class="path"><span class="method">{{ $pathMethod }}</span> <span>{{ $path }}</span></div>
+            <div class="path-summary">{{ $pathDetails.summary }}</div>
+            
+            {{ $isheader := 0}}
+            {{ $ispath := 0 }}
+            {{ $isquery := 0}}
+            {{ range $parameter := $pathDetails.parameters }}
+              {{ if eq $parameter.in "header" }}
+               {{ $isheader = 1 }}
+              {{ end }}
+              {{ if eq $parameter.in "path" }}
+               {{ $ispath = 1 }}
+              {{ end }}
+              {{ if eq $parameter.in "query" }}
+               {{ $isquery = 1 }}
+              {{ end }}
+            {{ end }}
+
+            <!-- Параметры заголовка -->
+            {{ if eq $isheader 1 }}
+            <h2>Параметры заголовка:</h2>
+            <div class="parameters-table">
+              <div class="header">Наименование</div>
+              <div class="header">Тип</div>
+              <div class="header">Описание</div>
+              {{ range $parameter := $pathDetails.parameters }}
+              {{ if eq $parameter.in "header" }}
+              <div class="parameter-name">{{ $parameter.name }}</div>
+              <div class="parameter-type">{{ $parameter.schema.type }}</div>
+              <div class="parameter-description">{{ $parameter.description }}</div>
+              {{ end }}
+              {{ end }}
+            </div>
+            {{ end }}
+            <!-- Параметры пути -->
+            {{ if eq $ispath 1 }}
+            <h2>Параметры пути:</h2>
+            <div class="parameters-table">
+              <div class="header">Наименование</div>
+              <div class="header">Тип</div>
+              <div class="header">Описание</div>
+              {{ range $parameter := $pathDetails.parameters }}
+              {{ if eq $parameter.in "path" }}
+              <div class="parameter-name">{{ $parameter.name }}</div>
+              <div class="parameter-type">{{ $parameter.schema.type }}</div>
+              <div class="parameter-description">{{ $parameter.description }}</div>
+              {{ end }}
+              {{ end }}
+            </div>
+            {{ end }}
+            <!-- Параметры строки запроса -->
+            {{ if eq $isquery 1 }}
+            <h2>Параметры строки запроса:</h2>
+            <div class="parameters-table">
+              <div class="header">Наименование</div>
+              <div class="header">Тип</div>
+              <div class="header">Описание</div>
+              {{ range $parameter := $pathDetails.parameters }}
+              {{ if eq $parameter.in "query" }}
+              <div class="parameter-name">{{ $parameter.name }}</div>
+              <div class="parameter-type">{{ $parameter.schema.type }}</div>
+              <div class="parameter-description">{{ $parameter.description }}</div>
+              {{ end }}
+              {{ end }}
+            </div>
+            {{ end }}
+            <!-- Параметры тела запроса -->
+            {{ if isset $pathDetails "requestBody" }}
+              <h2>Параметры тела запроса:</h2>
+              <!-- Вывод схемы тела запроса -->
+              {{ $schema := (index $pathDetails.requestBody.content "application/json").schema }}
+              {{ partial "properties-table" (dict "ref" (index $schema "$ref") "openapi" $openapi) }}
+            {{ end }}
+            <!-- Ссылка на внешнее описание -->
+            <div><a href="{{ $pathDetails.externalDocs.url }}">{{ $pathDetails.externalDocs.description}}</a></div>
+            <!-- Описание метода -->
+            <h2>Описание:</h2>
+            <div>{{ $pathDetails.description | markdownify }}</div>
+
+            <!-- Вывод схемы и примеров ответов -->
+            {{ range $responseCode, $responseDetails := $pathDetails.responses }}
+              {{ if isset $responseDetails "content" }}
+
+                <!-- Вывод схемы ответов -->
+                <h2>Свойства схемы ответа:</h2>
+                {{ $schema := (index $responseDetails.content "application/json").schema }}
+                {{ partial "properties-table" (dict "schema" $schema "ref" (index $schema "$ref") "openapi" $openapi) }}
+
+              {{ range $exampleName, $example := (index $responseDetails.content "application/json").examples }}
+                <!-- Вывод множественных примеров -->
+                {{ if isset $example "$ref" }}
+                  {{ $refPath := index $example "$ref" }}
+                  {{ $component := replace $refPath "#/components/examples/" "" }}
+
+                  <h2>Пример ответа с кодом {{ $responseCode }}</h2>
+                  <pre><code>{{(index $openapi.components.examples $component).value | jsonify (dict "indent" "  ") }}</code>
+                  </pre>
+                {{ else }}
+                  <code>Example Response: {{ $example }}</code>
+                {{ end }}
+              {{ end }}
+              {{ $example := (index $responseDetails.content "application/json").example }}
+              {{ if $example }}
+                <!-- Вывод одиночного примера -->
+                <h2>Пример ответа с кодом {{ $responseCode }}</h2>
+                <pre><code>{{ $example | jsonify (dict "indent" "  ") }}</code>
+                </pre>
+              {{ end }}
+              {{ else }}
+                <h2>Нет примера для ответа с кодом {{ $responseCode }}</h2>
+              {{ end }}
+            {{ end }}
+          </div>
+          {{ end }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </div>
+{{ end }}
