@@ -6,6 +6,7 @@
 body {
 	font-family: 'Roboto', sans-serif;
   font-size: 1em;
+  overflow: hidden;
 }
 
 h2 {
@@ -76,4 +77,35 @@ h2 {
 .items-delimiter {
   color: slateblue;
   grid-column: 1/5;
+}
+
+.page-container {
+  display: grid;
+  grid-template-areas: 
+  "H H H H"
+  "N D D D";
+  height: 100vh;
+}
+
+.page-header {
+  grid-area: H;
+  font-weight: bold;
+  font-size: 1.5em;
+  margin: 0.5em;
+}
+
+.navigation {
+  grid-area: N;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  margin: 0 1em;
+}
+
+.navigation::-webkit-scrollbar { 
+  width: 0; 
+}
+
+.doc-container {
+  grid-area: D;
+  overflow-x: hidden;
 }

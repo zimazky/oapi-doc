@@ -1,37 +1,34 @@
 <!-- 
-hugo OpenAPI reference documentation generator
+  hugo OpenAPI reference documentation generator
 
-Params:
-  url: the public URL of the OpenAPI .json specification
+  Params:
+    url: the public URL of the OpenAPI .json specification
 
-Generates reference documentation based on the provided OpenAPI specification. Use with: {{/*
+  Generates reference documentation based on the provided OpenAPI specification. Use with: {{/*
 
-  {{< generate-openapi-ref-docs url="your-.json-file-url" >}}
+    {{< generate-openapi-ref-docs url="your-.json-file-url" >}}
+
+    */}}
+
+  If your OpenAPI spec is not hosted at an accessible url endpoint, you can
+  store a copy of your OpenAPI specification in the root-level site /data folder.
+  Then delete the first and last lines of the code block below, and replace the
+  $openapi variable declaration at the beginning with: {{/*
+
+  {{ $openapi := .Site.Data.fileName }}
 
   */}}
 
-  Example: {{/*
+  where fileName is the file's name with `.json` removed from the end
+-->
 
-  {{< generate-openapi-ref-docs url="https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json" >}}
 
-  */}}
-
-If your OpenAPI spec is not hosted at an accessible url endpoint, you can
-store a copy of your OpenAPI specification in the root-level site /data folder.
-Then delete the first and last lines of the code block below, and replace the
-$openapi variable declaration at the beginning with: {{/*
-
-{{ $openapi := .Site.Data.fileName }}
-
-*/}}
-
-where fileName is the file's name with `.json` removed from the end
- -->
- {{ with $.Params.url }}
+{{ with $.Params.url }}
   {{ $openapi := getJSON $.Params.url }}
-  <div class="openapi-spec-content">
-    <h2>{{ $openapi.info.title }} version {{ $openapi.info.version }}</h2>
-    <div class="api-description">Описание {{ $openapi.info.description }}</div>
+  <div class="page-container">
+    <div class="page-header">
+      Документация API {{ $openapi.info.title }} version {{ $openapi.info.version }}
+    </div>
     <!-- Сбор всех тегов -->
     {{ $tags := slice }}
     {{ range $path, $pathMethods := $openapi.paths }}
@@ -41,6 +38,7 @@ where fileName is the file's name with `.json` removed from the end
     {{ end }}
 
     <!-- Содержание -->
+    <div class="navigation">
     {{ range $tag := $tags }}
       <div><a href="#{{ $tag }}">{{ $tag }}</a></div>
       {{ range $path, $pathMethods := $openapi.paths }}
@@ -53,8 +51,11 @@ where fileName is the file's name with `.json` removed from the end
         {{ end }}
       {{ end }}
     {{ end }}
+    </div>
 
+    <div class="doc-container">
     {{ range $tag := $tags }}
+      <div class="tag-container">
       <h1 id="{{ $tag }}">{{ $tag }}</h1>
       <!-- Разбивка методов по тегам -->
       {{ range $path, $pathMethods := $openapi.paths }}
@@ -152,6 +153,8 @@ where fileName is the file's name with `.json` removed from the end
           {{ end }}
         {{ end }}
       {{ end }}
+      </div>
     {{ end }}
+    </div>
   </div>
 {{ end }}
