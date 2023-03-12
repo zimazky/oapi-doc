@@ -39,20 +39,29 @@
 
     <!-- Содержание -->
     <div class="navigation">
+    <ul>
     {{ range $tag := $tags }}
-      <div><a href="#{{ $tag }}">{{ $tag }}</a></div>
+      <li class="tags-li" onclick="var el=this.nextElementSibling.classList.toggle('closed');"><a href="#{{ $tag }}">{{ $tag }}</a></li>
+        <ul class="closed">
+      <!--
+      <li class="tags-li"><a href="#{{ $tag }}">{{ $tag }}</a></li>
+        <ul>
+      -->
       {{ range $path, $pathMethods := $openapi.paths }}
         {{ range $pathMethod, $pathDetails := $pathMethods }}
           {{ if in $pathDetails.tags $tag }}
             {{ if $pathDetails.operationId }}
-            <div><a href="#{{$pathDetails.operationId}}">({{$pathMethod}}) {{ $pathDetails.operationId }}</a></div>
+            <li class="methods-li"><a href="#{{$pathDetails.operationId}}">({{$pathMethod}}) {{ $pathDetails.operationId }}</a></li>
             {{ end }}
           {{ end }}
         {{ end }}
       {{ end }}
+      </ul>
     {{ end }}
+    </ul>
     </div>
 
+    <!-- Основной документ -->
     <div class="doc-container">
     {{ range $tag := $tags }}
       <div class="tag-container">
