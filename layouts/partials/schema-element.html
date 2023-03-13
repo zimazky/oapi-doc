@@ -7,7 +7,7 @@
   .recursion - глубина рекурсии
   .parentIds - массив с идентификаторами схем родителей (для исключения бесконечной вложенности)
 
-  TODO: Необходимо добавить обработку allOf, oneOf, anyOf и enum
+  TODO: Необходимо добавить обработку allOf, oneOf, anyOf, required и enum
 -->
 {{ if .schema }}
   {{ $schema := .schema }}
@@ -35,7 +35,8 @@
     {{ else if eq $schema.type "array" }}
       <!-- Выводим по схеме массива -->
       {{ $schema = $schema.items }}
-      <div class="items-delimiter" title="{{ $schema }}">array of items {</div>
+      <div class="span3" title="{{ $schema }}">array of items {</div>
+      <div>{{ $schema.description }}</div>
       {{ partial "schema-element" (dict "schema" $schema "openapi" $openapi "parent" (printf "%s" $parent) "recursion" $recursion "parentIds" $parentIds) }}
       <div class="items-delimiter">}</div>
     {{ else if eq $schema.type "object" }}
@@ -64,7 +65,8 @@
           <div>{{ $schema.description }}</div>
           {{ if eq $schema.type "array" }}
             {{ $schema = $schema.items }}
-            <div class="items-delimiter" title="{{ $schema }}">array of items {</div>
+            <div class="span3" title="{{ $schema }}">array of items {</div>
+            <div>{{ $schema.description }}</div>
             {{ partial "schema-element" (dict "schema" $schema "openapi" $openapi "parent" (printf "%s.%s[]" $parent $name) "recursion" $recursion "parentIds" $parentIds) }}
             <div class="items-delimiter">}</div>
           {{ else if eq $schema.type "object"}}
