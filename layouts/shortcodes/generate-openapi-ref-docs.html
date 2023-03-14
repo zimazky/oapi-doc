@@ -51,7 +51,7 @@
         {{ range $pathMethod, $pathDetails := $pathMethods }}
           {{ if in $pathDetails.tags $tag }}
             {{ if $pathDetails.operationId }}
-            <li class="methods-li"><a href="#{{$pathDetails.operationId}}">({{$pathMethod}}) {{ $pathDetails.operationId }}</a></li>
+            <li class="methods-li"><a href="#{{$pathDetails.operationId}}">{{ $pathDetails.operationId }}</a></li>
             {{ end }}
           {{ end }}
         {{ end }}
@@ -93,28 +93,28 @@
 
             <!-- Параметры заголовка -->
             {{ if eq $isheader 1 }}
-              <h2>Параметры заголовка:</h2>
+              <h2>Параметры заголовка</h2>
               {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "header") }}
             {{ end }}
             <!-- Параметры пути -->
             {{ if eq $ispath 1 }}
-              <h2>Параметры пути:</h2>
+              <h2>Параметры пути</h2>
               {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "path") }}
             {{ end }}
             <!-- Параметры строки запроса -->
             {{ if eq $isquery 1 }}
-              <h2>Параметры строки запроса:</h2>
+              <h2>Параметры строки запроса</h2>
               {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "query") }}
             {{ end }}
             <!-- Параметры в куки -->
             {{ if eq $iscookie 1 }}
-              <h2>Параметры строки запроса:</h2>
+              <h2>Параметры строки запроса</h2>
               {{ partial "parameters-table" (dict "parameters" $pathDetails.parameters "openapi" $openapi "in" "cookie") }}
             {{ end }}
 
             <!-- Параметры тела запроса -->
             {{ if isset $pathDetails "requestBody" }}
-              <h2>Параметры тела запроса:</h2>
+              <h2>Параметры тела запроса</h2>
               <!-- Вывод схемы тела запроса -->
               {{ $schema := (index $pathDetails.requestBody.content "application/json").schema }}
               {{ partial "schema-table" (dict "schema" $schema "openapi" $openapi) }}
@@ -122,17 +122,18 @@
             <!-- Ссылка на внешнее описание -->
             <div><a href="{{ $pathDetails.externalDocs.url }}">{{ $pathDetails.externalDocs.description}}</a></div>
             <!-- Описание метода -->
-            <h2>Описание:</h2>
-            <div>{{ $pathDetails.description | markdownify }}</div>
+            {{ if $pathDetails.description }}
+              <h2>Описание</h2>
+              <div>{{ $pathDetails.description | markdownify }}</div>
+            {{ end }}
 
             <!-- Вывод схемы и примеров ответов -->
             {{ range $responseCode, $responseDetails := $pathDetails.responses }}
               {{ if isset $responseDetails "content" }}
 
                 <!-- Вывод схемы ответов -->
-                <h2>Свойства объекта ответа:</h2>
                 {{ $schema := (index $responseDetails.content "application/json").schema }}
-                <div>{{ $schema }}</div>
+                <h2 title="{{ $schema }}">Свойства объекта ответа</h2>
                 {{ partial "schema-table" (dict "schema" $schema "openapi" $openapi) }}
               {{ range $exampleName, $example := (index $responseDetails.content "application/json").examples }}
                 <!-- Вывод множественных примеров -->
